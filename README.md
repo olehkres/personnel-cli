@@ -1,7 +1,7 @@
 # personnel-cli
 Personnel-cli is one of Personnel Manager interfaces.
 
-You may also need personnel-api if you want to run it locally.
+You may also need personnel-api if you want to run it locally or modify.
 
 # Usage
 Download the last release for your OS and start to fill up db.sqlite with your personnel staff list.

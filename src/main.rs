@@ -1,30 +1,61 @@
+use std::{
+    collections::HashMap,
+    fs::read_to_string,
+    path::{Path, PathBuf},
+};
+
 use clap::Parser;
-use personnel_api::{db::make_personchain, person::Person, report::make_report};
-use std::path::PathBuf;
+
+use personnel_api::{PersonnelError, PersonnelManager};
 
 #[derive(Parser)]
 struct Cli {
-    person_id: u32,
-    report_template: PathBuf,
-    reference_template: PathBuf,
-    output: PathBuf,
+    template_path: PathBuf,
     db_path: PathBuf,
+    params: String,
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    let person_chain: Vec<Person> = make_personchain(cli.person_id, cli.db_path.as_path()).unwrap();
+    let params: HashMap<String, String> = cli
+        .params
+        .split(';')
+        .flat_map(|p| p.split_once('='))
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect();
 
-    let document_template_path = cli.report_template.as_path();
-    let reference_template_path = cli.reference_template.as_path();
-    let output_file_path = cli.output.as_path();
+    let report = create_report(&cli.template_path, &cli.db_path, params).unwrap();
 
-    make_report(
-        &person_chain,
-        document_template_path,
-        reference_template_path,
-        output_file_path,
-    )
-    .unwrap();
+    println!("{report}");
+}
+
+fn create_report(
+    template_path: &Path,
+    db_path: &Path,
+    params: HashMap<String, String>,
+) -> Result<String, PersonnelError> {
+    let pm = PersonnelManager::new(db_path).unwrap();
+
+    pm.make_report(params, read_to_string(template_path).unwrap())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_report() {
+        let params: HashMap<String, String> = HashMap::from([("id".to_string(), "0".to_string())]);
+
+        let report = create_report(
+            Path::new("resources/test-template.xml"),
+            Path::new("resources/test.sqlite"),
+            params,
+        ).unwrap();
+
+        let report_example = read_to_string("resources/test-report.html").unwrap();
+
+        assert_eq!(report, report_example)
+    }
 }

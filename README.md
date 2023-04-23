@@ -10,7 +10,7 @@ Note: if you are not a Ukrainian, you probably want to edit personnel-api, so it
 
 After filling up your database just use it like this:
 ```
-personnel-cli 0 ./templates/holiday.html ./templates/reference.html ./db.sqlite
+personnel-cli ./template.html ./db.sqlite id=0;param=2;etc=3
 ```
 
 Fell free to edit and add new templates. It is just html. You can get variables list from database personnel view. 
